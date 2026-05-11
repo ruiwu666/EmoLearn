@@ -3,7 +3,7 @@
 
 **Multimodal Affect Recognition for Online Learning Environments**
 
-**[Project Website]()** | 📧 rwu26@colby.edu / ruiwu888666@gmail.com
+**[Project Website](https://ruiwu666.github.io/EmoLearn/)** | 📧 rwu26@colby.edu / ruiwu888666@gmail.com
 
 ---
 
@@ -245,4 +245,4 @@ Significant generalization gap — the model learns person-specific patterns.
 **Rui Wu** · CS466 Multimodal Interaction and Learning · Colby College · Spring 2026
 Instructor: Tahiya Chowdhury
 
-📧 rwu26@colby.edu/ruiwu888666@gmail.com · 🌐 [Project Website]()
+📧 rwu26@colby.edu/ruiwu888666@gmail.com · 🌐 [Project Website](https://ruiwu666.github.io/EmoLearn/)
