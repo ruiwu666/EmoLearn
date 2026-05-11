@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EmoLearn — Multimodal Affect Recognition for Online Learning</title>
+    <meta name="description" content="EmoLearn: Multimodal Affect Recognition for Online Learning Environments using ResNet-18, MediaPipe, and GRU with Attention Fusion.">
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Source+Sans+3:wght@300;400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #FAFAF9;
+            --text: #1C1917;
+            --text2: #57534E;
+            --accent: #028090;
+            --accent2: #02C39A;
+            --border: #E7E5E4;
+            --card: #FFF;
+            --red: #DC2626;
+            --orange: #EA580C;
+            --green: #16A34A;
+            --highlight: #F0FDFA;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Source Sans 3', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.7;
+            font-size: 17px;
+        }
+
+        .container {
+            max-width: 880px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(26, 26, 46, .95);
+            backdrop-filter: blur(10px);
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, .1);
+        }
+
+        nav .container {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            overflow-x: auto;
+            max-width: 960px;
+        }
+
+        nav a {
+            color: #94A3B8;
+            text-decoration: none;
+            font-size: .8em;
+            font-weight: 500;
+            padding: 4px 8px;
+            border-radius: 4px;
+            white-space: nowrap;
+            transition: all .2s;
+        }
+
+        nav a:hover {
+            color: #02C39A;
+            background: rgba(2, 195, 154, .1);
+        }
+
+        nav .nav-brand {
+            color: #02C39A;
+            font-family: 'Source Serif 4', serif;
+            font-weight: 700;
+            font-size: .95em;
+            margin-right: 10px;
+        }
+
+        .hero {
+            background: linear-gradient(135deg, #1A1A2E, #16213E 50%, #0F3460);
+            padding: 80px 0 60px;
+            color: #fff;
+            text-align: center;
+        }
+
+        .hero h1 {
+            font-family: 'Source Serif 4', serif;
+            font-size: 3.2em;
+            font-weight: 700;
+            color: #02C39A;
+            margin-bottom: 8px;
+            letter-spacing: -1px;
+        }
+
+        .hero .tagline {
+            font-size: 1.3em;
+            font-weight: 300;
+            color: #CBD5E1;
+            margin-bottom: 20px;
+        }
+
+        .hero .meta {
+            font-size: .9em;
+            color: #64748B;
+        }
+
+        .hero .meta a {
+            color: #02C39A;
+            text-decoration: none;
+        }
+
+        section {
+            padding: 50px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        section:last-of-type {
+            border-bottom: none;
+        }
+
+        h2 {
+            font-family: 'Source Serif 4', serif;
+            font-size: 1.9em;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 16px;
+            letter-spacing: -.5px;
+        }
+
+        h3 {
+            font-family: 'Source Serif 4', serif;
+            font-size: 1.3em;
+            font-weight: 600;
+            color: var(--text);
+            margin: 28px 0 10px;
+        }
+
+        p {
+            margin-bottom: 16px;
+            color: var(--text2);
+        }
+
+        strong {
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        .img-full {
+            width: 100%;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 1px solid var(--border);
+            transition: transform .3s, box-shadow .3s;
+            cursor: zoom-in;
+        }
+
+        .img-full:hover {
+            transform: scale(1.02);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, .12);
+        }
+
+        .img-caption {
+            text-align: center;
+            font-size: .85em;
+            color: var(--text2);
+            margin-top: -12px;
+            margin-bottom: 24px;
+            font-style: italic;
+        }
+
+        .img-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin: 20px 0;
+        }
+
+        .img-grid img {
+            width: 100%;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            cursor: zoom-in;
+            transition: transform .3s;
+        }
+
+        .img-grid img:hover {
+            transform: scale(1.02);
+        }
+
+        .callout {
+            padding: 20px 24px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .callout.insight {
+            background: var(--highlight);
+            border-left: 4px solid var(--accent);
+        }
+
+        .callout.warning {
+            background: #FEF3C7;
+            border-left: 4px solid var(--orange);
+        }
+
+        .callout.danger {
+            background: #FEE2E2;
+            border-left: 4px solid var(--red);
+        }
+
+        .callout.success {
+            background: #D1FAE5;
+            border-left: 4px solid var(--green);
+        }
+
+        .callout strong {
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: .95em;
+        }
+
+        th {
+            background: var(--accent);
+            color: #fff;
+            padding: 10px 14px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        tr:hover {
+            background: #F5F5F4;
+        }
+
+        .best {
+            color: var(--accent);
+            font-weight: 700;
+        }
+
+        .stats-row {
+            display: flex;
+            gap: 16px;
+            margin: 24px 0;
+        }
+
+        .stat-card {
+            flex: 1;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .stat-card .num {
+            font-family: 'Source Serif 4', serif;
+            font-size: 1.8em;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .stat-card .label {
+            font-size: .85em;
+            color: var(--text2);
+        }
+
+        .pipeline {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin: 24px 0;
+            overflow-x: auto;
+        }
+
+        .pipe-step {
+            padding: 12px 16px;
+            border-radius: 6px;
+            color: #fff;
+            font-size: .85em;
+            font-weight: 600;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .pipe-arrow {
+            color: var(--text2);
+            font-size: 1.2em;
+        }
+
+        code {
+            font-family: 'JetBrains Mono', monospace;
+            background: #F5F5F4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: .88em;
+        }
+
+        footer {
+            background: #1A1A2E;
+            color: #64748B;
+            padding: 40px 0;
+            text-align: center;
+            font-size: .9em;
+        }
+
+        footer a {
+            color: #02C39A;
+            text-decoration: none;
+        }
+
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .lightbox {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, .85);
+            z-index: 200;
+            cursor: zoom-out;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .lightbox.active {
+            display: flex;
+        }
+
+        .lightbox img {
+            max-width: 92%;
+            max-height: 92%;
+            border-radius: 8px;
+        }
+
+        .hero-footer {
+            margin-top: auto;
+            padding-bottom: 10px;
+        }
+
+        .meta-line {
+            font-size: 0.95em;
+            color: #94A3B8;
+            margin-bottom: 4px;
+            font-weight: 400;
+        }
+
+        .meta-line a {
+            color: #02C39A;
+            text-decoration: none;
+        }
+
+        @media(max-width:700px) {
+            .two-col,
+            .img-grid,
+            .stats-row {
+                grid-template-columns: 1fr;
+                flex-direction: column;
+            }
+
+            .hero h1 {
+                font-size: 2.2em;
+            }
+
+            nav a {
+                font-size: .72em;
+                padding: 4px 5px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="lightbox" id="lightbox" onclick="this.classList.remove('active')">
+        <img id="lightbox-img" src="" alt="">
+    </div>
+
+    <nav>
+        <div class="container">
+            <a href="#" class="nav-brand">EmoLearn</a>
+            <a href="#motivation">Problem</a>
+            <a href="#dataset">Dataset</a>
+            <a href="#modalities">Modalities</a>
+            <a href="#features">Features</a>
+            <a href="#system">System</a>
+            <a href="#checkin2">Baselines</a>
+            <a href="#results">Results</a>
+            <a href="#improvements">Improvements</a>
+            <a href="#allstates">All States</a>
+            <a href="#gender">Gender</a>
+            <a href="#louo">LOUO</a>
+            <a href="#demo">Demo</a>
+            <a href="#findings">Findings</a>
+        </div>
+    </nav>
+
+    <div class="hero">
+        <div class="container hero-content">
+            <h1>EmoLearn</h1>
+            <div class="tagline">Multimodal Affect Recognition for Online Learning Environments</div>
+
+            <div class="hero-footer">
+                <div class="meta-line">
+                    CS466 Multimodal Interaction and Learning · Colby College · Spring 2026
+                </div>
+                <div class="meta-line">
+                    Rui Wu · <a href="mailto:ruiwu888666@gmail.com">ruiwu888666@gmail.com</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+<section id="motivation"><div class="container">
+<h2>The Problem</h2>
+<p>After COVID-19, online learning exploded — but instructors lost the ability to read the room. In a physical classroom, a confused frown or a bored yawn is immediately visible. On Zoom, that feedback disappears. You have <strong>no idea</strong> if anyone is actually engaged.</p>
+<p>EmoLearn addresses this by watching student webcam video through <strong>two visual lenses</strong> — facial appearance and geometric head/eye/mouth measurements — and automatically detecting engagement levels using multimodal fusion with recurrent neural networks.</p>
+<p>The system detects four affective states: <strong>Engagement, Boredom, Confusion, and Frustration</strong>. Each is classified as Low or High from 10-second webcam video clips, providing real-time feedback to instructors about which students may be struggling.</p>
+</div></section>
+
+<section id="dataset"><div class="container">
+<h2>Dataset: DAiSEE</h2>
+<p>We use the <strong>DAiSEE</strong> (Dataset for Affective States in E-Environments) dataset collected at IIIT-Hyderabad, India. 112 university students (ages 18-30) sat in front of computers watching two types of videos — one educational, one recreational — while a webcam recorded them in real-world settings (dorm rooms, libraries, labs) with varying lighting conditions.</p>
+<div class="stats-row"><div class="stat-card"><div class="num">9,068</div><div class="label">video clips</div></div><div class="stat-card"><div class="num">10 sec</div><div class="label">each clip (30fps)</div></div><div class="stat-card"><div class="num">112</div><div class="label">students</div></div><div class="stat-card"><div class="num">25 hrs</div><div class="label">total video</div></div></div>
+<p>Each clip is labeled for four affective states on a 4-level scale (Very Low / Low / High / Very High). Labels were crowdsourced from <strong>10 annotators per clip</strong>, aggregated using the Dawid-Skene algorithm, and validated by expert psychologists. All participants gave signed consent. The dataset is split into Train (5,358), Validation (1,429), and Test (1,784) clips.</p>
+
+<h3>Frame Sampling</h3>
+<p>From each 10-second clip (300 frames at 30fps), we uniformly sample <strong>10 frames</strong> for efficiency. Each frame is processed independently through both feature extraction pipelines.</p>
+<img src="images/sample_frames.png" alt="Sampled frames" class="img-full">
+<div class="img-caption">10 uniformly sampled frames from a single 10-second video clip (1100011002.avi)</div>
+
+<h3>The Challenge: Extreme Class Imbalance</h3>
+<img src="images/label_distribution.png" alt="Label distribution" class="img-full">
+<div class="img-caption">Label distribution across all four affective states and Train/Val/Test splits</div>
+<p>The engagement distribution is severely imbalanced:</p>
+<table><tr><th>Level</th><th>Train</th><th>Val</th><th>Test</th><th>% of Train</th></tr><tr><td>Very Low (0)</td><td>33</td><td>23</td><td>4</td><td><strong style="color:var(--red)">0.7%</strong></td></tr><tr><td>Low (1)</td><td>201</td><td>143</td><td>84</td><td>4.1%</td></tr><tr><td>High (2)</td><td>2,474</td><td>813</td><td>882</td><td>51.0%</td></tr><tr><td>Very High (3)</td><td>2,144</td><td>450</td><td>814</td><td>44.2%</td></tr></table>
+<div class="callout danger"><strong>95.2% of training samples are High or Very High engagement.</strong>A model can predict "engaged" for everyone and get 95% accuracy — without detecting a single struggling student. This is why we use <strong>F1 macro score</strong>, not accuracy, as our primary evaluation metric.</div>
+</div></section>
+
+<section id="modalities"><div class="container">
+<h2>Two Modalities from Video</h2>
+<p>Since students silently watch videos, there is no meaningful audio signal. We derive two complementary visual modalities from the webcam feed.</p>
+<div class="two-col"><div>
+<h3>Lens 1: Appearance</h3>
+<p><em>What the face looks like — pixel-level information</em></p>
+<p>Each frame is processed by <strong>MediaPipe FaceDetector</strong> to locate and crop the face, resized to 224×224 pixels. The crop is fed through pretrained <strong>ResNet-18</strong> (ImageNet weights, classification head removed), producing a <strong>512-dimensional embedding</strong> per frame. This encodes brow tension, eye openness, lip shape, micro-expressions.</p>
+<img src="images/face_crops.png" alt="Face crops" class="img-full">
+<div class="img-caption">Face detection → 224×224 crops → ResNet-18 → 512-dim per frame</div>
+</div><div>
+<h3>Lens 2: Geometric</h3>
+<p><em>How the face is positioned — coordinate-level information</em></p>
+<p><strong>MediaPipe FaceLandmarker</strong> detects 478 facial keypoints. From these we compute <strong>6 interpretable features</strong>: head pose (pitch/yaw/roll via solvePnP), left & right Eye Aspect Ratio (drowsiness), and Mouth Aspect Ratio (yawning).</p>
+<table style="font-size:.85em;"><tr><th>Feature</th><th>What it measures</th></tr><tr><td>Pitch</td><td>Head up/down (nodding)</td></tr><tr><td>Yaw</td><td>Head left/right (turning away)</td></tr><tr><td>Roll</td><td>Head sideways tilt</td></tr><tr><td>L_EAR / R_EAR</td><td>Eye openness (drowsiness)</td></tr><tr><td>MAR</td><td>Mouth openness (yawning)</td></tr></table>
+<img src="images/face_mesh_demo.png" alt="Face mesh" class="img-full">
+<div class="img-caption">Original frame vs. 478 facial landmarks overlay</div>
+</div></div>
+<div class="callout insight"><strong>Why two modalities?</strong>A student might sit still but furrow their brow (appearance catches it). Another might look fine but slowly turn away (geometric catches it). Together they provide complementary signals — though as our experiments show, the 512-dim appearance features carry far more discriminative power than the 6-dim geometric features.</div>
+<p>We then compute <strong>statistical features</strong> (mean, std, min, max) across 10 frames, yielding 2,048-dim appearance and 24-dim geometric vectors. The std captures temporal variability — a fidgeting student has high std in yaw; a drowsy student has decreasing EAR over time.</p>
+</div></section>
+<section id="features"><div class="container">
+<h2>Feature Analysis</h2>
+<h3>Geometric Feature Distributions</h3>
+<p>Statistical features (mean and std across 10 frames) reveal overall behavior patterns. Most students face the screen (yaw ~0) with eyes moderately open (EAR ~0.25-0.30). The std values cluster near zero — students don't move much in 10 seconds.</p>
+<img src="images/geo_feature_distributions.png" alt="Geometric distributions" class="img-full">
+<div class="img-caption">Distribution of geometric features: mean values (top) and standard deviations (bottom)</div>
+
+<h3>Appearance Feature Distributions</h3>
+<p>ResNet-18 embedding dimensions follow diverse distributions — some right-skewed, others roughly normal — showing the 512 dimensions encode diverse, non-redundant facial information.</p>
+<img src="images/app_feature_distributions.png" alt="Appearance distributions" class="img-full">
+<div class="img-caption">Distribution of first 12 appearance dimensions (mean across frames)</div>
+
+<h3>Features by Engagement Level (Binary)</h3>
+<p>Using kernel density estimation (normalized per class) to compare Low vs High engagement on the same scale:</p>
+<img src="images/geo_by_engagement_binary.png" alt="Features by engagement binary" class="img-full">
+<div class="img-caption">Geometric features by binary engagement. Red = Low (n=234), Blue = High (n=4,618).</div>
+<div class="callout insight"><strong>What the distributions reveal:</strong>Low-engagement students show slightly lower Eye Aspect Ratios (more closed eyes), wider Yaw spread (looking away more), and more variable MAR (yawning). However, distributions overlap heavily — explaining why geometric features alone are insufficient and the 512-dim appearance features are essential.</div>
+
+<h3>Features by Engagement Level (4-Class)</h3>
+<img src="images/geo_by_engagement_4class.png" alt="Features by engagement 4-class" class="img-full">
+<div class="img-caption">Geometric features by 4-class engagement. Very Low (red, n=33) is noisiest due to very few samples.</div>
+</div></section>
+
+<section id="system"><div class="container">
+<h2>System Architecture</h2>
+<div class="pipeline"><div class="pipe-step" style="background:#64748B;">Student Video (10s)</div><span class="pipe-arrow">→</span><div class="pipe-step" style="background:#0F3460;">Sample 10 Frames</div><span class="pipe-arrow">→</span><div class="pipe-step" style="background:#0F3460;">Face Detection</div><span class="pipe-arrow">→</span><div class="pipe-step" style="background:#028090;">ResNet-18 (512d) + MediaPipe (6d)</div><span class="pipe-arrow">→</span><div class="pipe-step" style="background:#02C39A;">GRU + Attention</div><span class="pipe-arrow">→</span><div class="pipe-step" style="background:#16213E;">Engaged / Not Engaged</div></div>
+<h3>Model Variants</h3>
+<table><tr><th>Category</th><th>Architecture</th><th>Description</th></tr><tr><td>Baseline</td><td>MLP</td><td>Averaged or statistical features → fully connected layers</td></tr><tr><td>Temporal</td><td>LSTM / GRU</td><td>Frame sequences (10×D) → recurrent network → last hidden state</td></tr><tr><td>Fusion</td><td>Early / Late</td><td>Concatenate modalities at input (early) or after encoders (late)</td></tr><tr><td>Attention</td><td>Cross-modal Attn</td><td>Learns dynamic per-sample modality weights via attention</td></tr><tr><td>MIL</td><td>Attention / Gated MIL</td><td>Bag-of-frames; learns frame importance via attention pooling</td></tr></table>
+<h3>Handling Class Imbalance</h3>
+<table><tr><th>Strategy</th><th>How it works</th></tr><tr><td>Cross-Entropy</td><td>Standard loss — treats all samples equally</td></tr><tr><td>Class Weighting</td><td>Inverse frequency weights (Very Low gets ~37× weight of High)</td></tr><tr><td>Focal Loss (γ=2)</td><td>-(1-p<sub>t</sub>)<sup>γ</sup>log(p<sub>t</sub>): down-weights easy majority, focuses on hard minority</td></tr><tr><td>Oversampling</td><td>WeightedRandomSampler repeats minority in each batch</td></tr></table>
+<div class="callout warning"><strong>Why GRU over LSTM?</strong>Both handle sequential data. LSTM has 3 gates; GRU has 2 — fewer parameters, less overfitting. GRU matched or beat LSTM across all configurations on our dataset.</div>
+</div></section>
+
+<section id="checkin2"><div class="container">
+<h2>Check-In 2: Baseline Results (4-Class)</h2>
+<p>Initial experiments with MLP baselines on averaged features, 30 epochs, Adam + ReduceLROnPlateau, Apple M4 (MPS).</p>
+<table><tr><th>Model</th><th>Accuracy</th><th>F1 (macro)</th><th>F1 (weighted)</th></tr><tr><td>Geometric Only</td><td>0.518</td><td>0.171</td><td>0.354</td></tr><tr><td>Appearance Only</td><td>0.557</td><td>0.258</td><td>0.503</td></tr><tr><td>Early Fusion</td><td>0.491</td><td>0.249</td><td>0.477</td></tr><tr><td>Early Fusion + Weights</td><td>0.435</td><td>0.247</td><td>0.451</td></tr><tr><td>Late Fusion + Weights</td><td>0.526</td><td>0.255</td><td>0.493</td></tr><tr><td><em>DAiSEE Paper (LRCN)</em></td><td><em>0.579</em></td><td><em>—</em></td><td><em>—</em></td></tr></table>
+<div class="callout insight"><strong>Key finding:</strong> All models ignore classes 0 and 1. Geometric-only gets 0% recall on minority classes. Appearance (F1=0.258) clearly beats geometric (F1=0.171), confirming facial texture > head pose for engagement detection.</div>
+</div></section>
+<section id="results"><div class="container">
+<h2>Results: Engagement Classification</h2>
+<h3>4-Class: F1 Stuck at ~0.27</h3>
+<p>We tested 17 model variants. Best 4-class F1 remains 0.276 (Appearance GRU). Focal loss + oversampling actually made 4-class <em>worse</em> — repeating 33 samples causes overfitting.</p>
+<table><tr><th>Model</th><th>Accuracy</th><th>F1 Macro</th></tr><tr><td><strong>Appearance GRU</strong></td><td>0.526</td><td class="best">0.276</td></tr><tr><td>Early Fusion MLP</td><td>0.522</td><td>0.267</td></tr><tr><td>Early Fusion LSTM</td><td>0.485</td><td>0.259</td></tr><tr><td>Geometric MLP</td><td>0.529</td><td>0.255</td></tr><tr><td>Appearance MLP</td><td>0.496</td><td>0.253</td></tr><tr><td>EF LSTM+Focal</td><td>0.314</td><td>0.194</td></tr></table>
+
+<h3>Binary Classification: The Breakthrough</h3>
+<p>Merging levels 0+1 → Low, 2+3 → High (matching DAiSEE paper). 234 Low vs 4,618 High (4.8% minority).</p>
+<img src="images/f1_comparison.png" alt="F1 comparison" class="img-full">
+<div class="img-caption">F1 macro across all models. Top: 4-class. Bottom: binary. Red=focal, Blue=CW, Gray=CE.</div>
+
+<table><tr><th>Model</th><th>Accuracy</th><th>F1 Macro</th><th>Strategy</th></tr><tr><td><strong>Attn GRU+Focal+OS</strong></td><td>0.921</td><td class="best">0.598</td><td>Focal + Oversample</td></tr><tr><td>Attn LSTM+CW+OS</td><td>0.885</td><td>0.590</td><td>CW + Oversample</td></tr><tr><td>Appearance MLP+OS</td><td>0.908</td><td>0.563</td><td>CE + Oversample</td></tr><tr><td>Attn LSTM+Focal+OS</td><td>0.919</td><td>0.560</td><td>Focal + Oversample</td></tr><tr><td>EF GRU+Focal+OS</td><td>0.891</td><td>0.555</td><td>Focal + Oversample</td></tr><tr><td>LF LSTM+Focal+OS</td><td>0.824</td><td>0.553</td><td>Focal + Oversample</td></tr><tr><td>All CE Baselines</td><td>0.948</td><td>0.487</td><td>Predicts all "High"</td></tr><tr><td><em>DAiSEE Paper (LRCN)</em></td><td><em>0.946</em></td><td><em>—</em></td><td></td></tr></table>
+
+<div class="two-col"><div class="callout danger" style="margin:0;"><strong>Baseline (no imbalance handling)</strong>Accuracy: 94.8%<br>F1 Score: 0.487 — terrible.<br>Low recall: 0% — detects zero struggling students.</div><div class="callout success" style="margin:0;"><strong>Best: Attn GRU+Focal+OS</strong>Accuracy: 92.1%<br>F1 Score: 0.598 (+22.8%)<br>Low recall: 24% — detects 20/85 struggling students.</div></div>
+
+<img src="images/best_confusion.png" alt="Best confusion matrices" class="img-full">
+<div class="img-caption">Left: 4-class best (Appearance GRU, F1=0.276). Right: binary best (Attn GRU+Focal+OS, F1=0.598).</div>
+
+<h3>LSTM vs GRU Head-to-Head</h3>
+<table><tr><th>Config</th><th>LSTM Acc</th><th>GRU Acc</th><th>LSTM F1</th><th>GRU F1</th></tr><tr><td>Appearance</td><td>0.948</td><td>0.946</td><td>0.487</td><td class="best">0.518</td></tr><tr><td>Early Fusion</td><td>0.948</td><td>0.948</td><td>0.487</td><td>0.487</td></tr><tr><td>Late Fusion</td><td>0.949</td><td>0.949</td><td>0.520</td><td>0.520</td></tr><tr><td>Attention</td><td>0.948</td><td>0.949</td><td>0.539</td><td>0.530</td></tr></table>
+</div></section>
+
+<section id="improvements"><div class="container">
+<h2>Improvements: Statistical Features & MIL</h2>
+<p>Based on professor feedback: (1) <strong>statistical features</strong> (mean/std/min/max) instead of averaging, and (2) <strong>Multiple Instance Learning</strong> treating each video as a bag of frame instances.</p>
+<h3>Statistical Features</h3>
+<p>Instead of averaging 10 frames into 1 vector, compute four statistics per dimension: mean, std, min, max. Appearance: (10,512) → 2,048-dim. Geometric: (10,6) → 24-dim. The std captures temporal variability that averaging destroys.</p>
+<h3>Multiple Instance Learning</h3>
+<p>MIL treats frames as an unordered bag. Attention pooling learns which frames matter most — perhaps the frame where the student yawns matters more than one where they sit still. Three variants: Attention MIL, Appearance MIL, Gated Attention MIL (Ilse et al., 2018).</p>
+
+<table><tr><th>Model</th><th>Accuracy</th><th>F1 Macro</th><th>Type</th></tr><tr><td><strong>Stat Fusion MLP+OS</strong></td><td>0.876</td><td class="best">0.594</td><td>Statistical</td></tr><tr><td>Stat Fusion MLP</td><td>0.946</td><td>0.586</td><td>Statistical</td></tr><tr><td>Attention MIL+OS</td><td>0.910</td><td>0.583</td><td>MIL</td></tr><tr><td>Stat App MLP+Focal+OS</td><td>0.872</td><td>0.574</td><td>Statistical</td></tr><tr><td>Appearance MIL+Focal+OS</td><td>0.790</td><td>0.540</td><td>MIL</td></tr><tr><td>Attn GRU+Focal+OS</td><td>0.810</td><td>0.521</td><td>Temporal</td></tr><tr><td>Attention MIL</td><td>0.949</td><td>0.521</td><td>MIL (no OS)</td></tr><tr><td>Gated MIL+Focal+OS</td><td>0.649</td><td>0.459</td><td>MIL</td></tr></table>
+<div class="callout success"><strong>Statistical features validate the professor's suggestion.</strong>Stat Fusion MLP+OS (F1=0.594) matches the Attn GRU (0.598). Simpler features + richer statistics beat complex temporal models. MIL also performs competitively (0.583), confirming frame-level attention pooling works.</div>
+</div></section>
+
+<section id="allstates"><div class="container">
+<h2>All Four Affective States</h2>
+<p>Extended to all states using binary classification. Stat MLP+OS and Attn GRU+Focal+OS compared.</p>
+<table><tr><th>State</th><th>Best Model</th><th>Accuracy</th><th>F1 Macro</th><th>Minority %</th></tr><tr><td><strong>Engagement</strong></td><td>Stat MLP</td><td>90.4%</td><td class="best">0.628</td><td>4.8% Low</td></tr><tr><td><strong>Confusion</strong></td><td>Stat MLP</td><td>84.3%</td><td>0.579</td><td>9.5% High</td></tr><tr><td><strong>Frustration</strong></td><td>Stat MLP</td><td>87.0%</td><td>0.563</td><td>4.6% High</td></tr><tr><td><strong>Boredom</strong></td><td>Stat MLP</td><td>58.2%</td><td>0.494</td><td>24.5% High</td></tr></table>
+<img src="images/all_states_results.png" alt="All states" class="img-full">
+<div class="img-caption">Binary classification across all four affective states</div>
+<img src="images/all_states_confusion.png" alt="All states CM" class="img-full">
+<div class="img-caption">Confusion matrices for best model per state</div>
+<div class="callout warning"><strong>Boredom is surprisingly the hardest</strong> despite the most balanced data (24.5% minority). Bored and focused students look very similar facially. Stat MLP wins every single state — simpler features with richer statistics consistently outperform complex temporal models.</div>
+</div></section>
+
+<section id="gender"><div class="container">
+<h2>Gender Analysis</h2>
+<p>Dataset has 2.13:1 male-to-female ratio (80 male, 32 female students). We evaluated Attn GRU+Focal+OS separately by gender.</p>
+<img src="images/gender_analysis.png" alt="Gender analysis" class="img-full">
+<div class="img-caption">Performance by gender: accuracy/F1 (left), confusion matrices (center, right)</div>
+<table><tr><th>Metric</th><th>Female (n=337)</th><th>Male (n=1,301)</th></tr><tr><td>Class distribution</td><td>Low=38, High=299 (11.3%)</td><td>Low=47, High=1,254 (3.6%)</td></tr><tr><td>Accuracy</td><td>78.0%</td><td>94.7%</td></tr><tr><td>F1 Macro</td><td class="best">0.586</td><td>0.550</td></tr><tr><td>Low Recall</td><td class="best">42% (16/38)</td><td>11% (5/47)</td></tr><tr><td>High Recall</td><td>83%</td><td>98%</td></tr></table>
+<div class="callout insight"><strong>Paradox: higher accuracy for males but higher F1 for females.</strong>The model detects low engagement much better for females (42% vs 11% recall). This is driven by class distribution differences within each gender (11.3% vs 3.6% minority), not gender-specific facial features. Class imbalance, not gender bias, drives the performance gap.</div>
+</div></section>
+
+<section id="louo"><div class="container">
+<h2>Leave-One-User-Out Validation</h2>
+<p>Trained on N-1 users, tested on 1 unseen user, repeated for 20 sampled users (101 total, 7,919 clips). Attn GRU+Focal+OS, 15 epochs per fold.</p>
+<img src="images/louo_results.png" alt="LOUO" class="img-full">
+<div class="img-caption">LOUO F1 per user (left) and distribution (right). Red dashed = mean.</div>
+<table><tr><th>Metric</th><th>Standard Split</th><th>LOUO (20 users)</th></tr><tr><td>Mean Accuracy</td><td>92.1%</td><td>47.2% ± 30.3%</td></tr><tr><td>Mean F1 Macro</td><td class="best">0.628</td><td>0.333 ± 0.184</td></tr></table>
+<p>Per-user F1 ranges from 0.018 (User 310074) to 0.614 (User 310068). This extreme variance shows people express engagement very differently.</p>
+<div class="callout danger"><strong>Significant generalization gap.</strong>F1 drops from 0.628 to 0.333 on unseen users. The model partially learns person-specific patterns rather than universal engagement cues. Future work: person-adaptive models with few-shot calibration.</div>
+</div></section>
+
+<section id="demo"><div class="container">
+<h2>Pipeline Demo</h2>
+<p>Full pipeline on video clip 1100021001.avi:</p>
+<table style="font-size:.9em;"><tr><th>Step</th><th>Input</th><th>Output</th></tr><tr><td>1. Frame sampling</td><td>10-sec video (300 frames)</td><td>10 frames at [0, 33, 66, ..., 299]</td></tr><tr><td>2. Face detection</td><td>10 raw frames</td><td>10 crops (224×224) via MediaPipe</td></tr><tr><td>3. Appearance extraction</td><td>10 face crops</td><td>(10, 512) via frozen ResNet-18</td></tr><tr><td>4. Geometric extraction</td><td>10 raw frames</td><td>(10, 6) via MediaPipe landmarks</td></tr><tr><td>5. Classification</td><td>(10, 512) + (10, 6)</td><td>High Engagement, 56.5% confidence</td></tr></table>
+<p><strong>Demo output:</strong> Prediction: High Engagement (56.5% confidence). Attention weights: Appearance 62.9%, Geometric 37.1%.</p>
+<img src="images/demo_pipeline.png" alt="Pipeline demo" class="img-full">
+<div class="img-caption">Full pipeline: raw frames → face crops → landmarks → prediction</div>
+</div></section>
+
+<section id="findings"><div class="container">
+<h2>Key Findings</h2>
+<div class="callout insight"><strong>1. Facial expression > head position.</strong>Appearance (512-dim) consistently outperforms geometric (6-dim). Geometric-only F1=0.171 vs appearance-only F1=0.258.</div>
+<div class="callout insight"><strong>2. Statistical features beat temporal models.</strong>Mean/std/min/max across frames (Stat MLP F1=0.628) matched GRU sequence modeling (F1=0.598). Engagement is sustained — doesn't flicker in 10 seconds.</div>
+<div class="callout insight"><strong>3. Data imbalance matters more than model architecture.</strong>Biggest jump came from focal loss + oversampling, not from attention or GRU. F1: 0.487 → 0.598.</div>
+<div class="callout insight"><strong>4. Simpler can be better.</strong>GRU > LSTM. Stat MLP > GRU. On limited data, complexity is a liability.</div>
+<div class="callout insight"><strong>5. Generalization is the hardest challenge.</strong>LOUO drops F1 from 0.628 to 0.333. People express engagement differently.</div>
+</div></section>
+
+<section id="limitations"><div class="container">
+<h2>Limitations & Future Work</h2>
+<div class="callout danger"><strong>Limitations:</strong> All Asian students from one university. Geometric features too coarse (6 numbers from 478 landmarks). LOUO shows poor generalization. Only 24-41% recall on struggling students.</div>
+<div class="callout success"><strong>Future Work:</strong> Multi-task learning for all 4 states jointly. SMOTE augmentation for minority classes. Person-adaptive models with few-shot calibration.</div>
+</div></section>
+
+<footer><div class="container">
+<p style="color:#02C39A;font-size:1.1em;margin-bottom:8px;">Can your computer tell if you're paying attention?<br>Now it can — at least 24% of the time.</p>
+<p>Rui Wu · <a href="mailto:ruiwu888666@gmail.com">ruiwu888666@gmail.com</a> · CS466 Spring 2026 · Colby College</p>
+<p style="margin-top:12px;"><a href="https://github.com/ruiwu666/EmoLearn">GitHub Repository</a></p>
+</div></footer>
+
+<script>
+document.querySelectorAll('.img-full,.img-grid img').forEach(i=>{i.addEventListener('click',()=>{document.getElementById('lightbox-img').src=i.src;document.getElementById('lightbox').classList.add('active');});});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')document.getElementById('lightbox').classList.remove('active');});
+const ss=document.querySelectorAll('section[id]'),nl=document.querySelectorAll('nav a:not(.nav-brand)');
+window.addEventListener('scroll',()=>{let c='';ss.forEach(s=>{if(scrollY>=s.offsetTop-80)c=s.id;});nl.forEach(a=>{a.style.color=a.getAttribute('href')==='#'+c?'#02C39A':'';});});
+</script>
+</body></html>
