@@ -441,8 +441,8 @@
 
 <section id="motivation"><div class="container">
 <h2>The Problem</h2>
-<p>After COVID-19, online learning exploded — but instructors lost the ability to read the room. In a physical classroom, a confused frown or a bored yawn is immediately visible. On Zoom, that feedback disappears. You have <strong>no idea</strong> if anyone is actually engaged.</p>
-<p>EmoLearn addresses this by watching student webcam video through <strong>two visual lenses</strong> — facial appearance and geometric head/eye/mouth measurements — and automatically detecting engagement levels using multimodal fusion with recurrent neural networks.</p>
+<p>After COVID-19, online learning exploded — but instructors lost the ability to read the room. In a physical classroom, a confused frown or a bored yawn is immediately visible. However, on Zoom, that feedback disappears. The instructors have <strong>no idea</strong> if students are actually engaged.</p>
+<p>EmoLearn addresses this by watching student webcam video through <strong>two visual lenses/modalities</strong> — facial appearance and geometric head/eye/mouth measurements — and automatically detecting engagement levels using multimodal fusion with recurrent neural networks.</p>
 <p>The system detects four affective states: <strong>Engagement, Boredom, Confusion, and Frustration</strong>. Each is classified as Low or High from 10-second webcam video clips, providing real-time feedback to instructors about which students may be struggling.</p>
 </div></section>
 
@@ -462,7 +462,10 @@
 <div class="img-caption">Label distribution across all four affective states and Train/Val/Test splits</div>
 <p>The engagement distribution is severely imbalanced:</p>
 <table><tr><th>Level</th><th>Train</th><th>Val</th><th>Test</th><th>% of Train</th></tr><tr><td>Very Low (0)</td><td>33</td><td>23</td><td>4</td><td><strong style="color:var(--red)">0.7%</strong></td></tr><tr><td>Low (1)</td><td>201</td><td>143</td><td>84</td><td>4.1%</td></tr><tr><td>High (2)</td><td>2,474</td><td>813</td><td>882</td><td>51.0%</td></tr><tr><td>Very High (3)</td><td>2,144</td><td>450</td><td>814</td><td>44.2%</td></tr></table>
-<div class="callout danger"><strong>95.2% of training samples are High or Very High engagement.</strong>A model can predict "engaged" for everyone and get 95% accuracy — without detecting a single struggling student. This is why we use <strong>F1 macro score</strong>, not accuracy, as our primary evaluation metric.</div>
+<div class="callout danger">
+    <strong>95.2% of training samples are High or Very High engagement.</strong>
+    A model can predict "engaged" for everyone and get 95% accuracy — without detecting a single struggling student. This is why we use F1 macro score, not accuracy, as our primary evaluation metric.
+</div>
 </div></section>
 
 <section id="modalities"><div class="container">
@@ -471,9 +474,9 @@
 <div class="two-col"><div>
 <h3>Lens 1: Appearance</h3>
 <p><em>What the face looks like — pixel-level information</em></p>
-<p>Each frame is processed by <strong>MediaPipe FaceDetector</strong> to locate and crop the face, resized to 224×224 pixels. The crop is fed through pretrained <strong>ResNet-18</strong> (ImageNet weights, classification head removed), producing a <strong>512-dimensional embedding</strong> per frame. This encodes brow tension, eye openness, lip shape, micro-expressions.</p>
+<p>Each frame is processed by <strong>MediaPipe FaceDetector</strong> to locate and crop the face, resized to 224x224 pixels. The crop is fed through pretrained <strong>ResNet-18</strong> (ImageNet weights, classification head removed), producing a <strong>512-dimensional embedding</strong> per frame. This encodes brow tension, eye openness, lip shape, micro-expressions.</p>
 <img src="images/face_crops.png" alt="Face crops" class="img-full">
-<div class="img-caption">Face detection → 224×224 crops → ResNet-18 → 512-dim per frame</div>
+<div class="img-caption">Face detection → 224x224 crops → ResNet-18 → 512-dim per frame</div>
 </div><div>
 <h3>Lens 2: Geometric</h3>
 <p><em>How the face is positioned — coordinate-level information</em></p>
@@ -548,7 +551,7 @@
 
 <section id="improvements"><div class="container">
 <h2>Improvements: Statistical Features & MIL</h2>
-<p>Based on professor feedback: (1) <strong>statistical features</strong> (mean/std/min/max) instead of averaging, and (2) <strong>Multiple Instance Learning</strong> treating each video as a bag of frame instances.</p>
+<p>Based on Professor Chowdhury's feedback: (1) <strong>statistical features</strong> (mean/std/min/max) instead of averaging, and (2) <strong>Multiple Instance Learning</strong> treating each video as a bag of frame instances.</p>
 <h3>Statistical Features</h3>
 <p>Instead of averaging 10 frames into 1 vector, compute four statistics per dimension: mean, std, min, max. Appearance: (10,512) → 2,048-dim. Geometric: (10,6) → 24-dim. The std captures temporal variability that averaging destroys.</p>
 <h3>Multiple Instance Learning</h3>
